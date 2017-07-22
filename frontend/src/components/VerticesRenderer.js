@@ -3,6 +3,18 @@ import { mat4 } from 'gl-matrix';
 
 export default class VerticesRenderer extends Component {
 
+  get visible() {
+    return this._visible;
+  }
+
+  set visible(value) {
+    if (typeof value !== 'boolean') {
+      throw new Error('`value` is not type of Boolean!');
+    }
+
+    this._visible = value;
+  }
+
   get shader() {
     return this._shader;
   }
@@ -60,9 +72,46 @@ export default class VerticesRenderer extends Component {
     this._dirty = true;
   }
 
+  get overrideUniforms() {
+    return this._overrideUniforms;
+  }
+
+  set overrideUniforms(value) {
+    const { _overrideUniforms } = this;
+
+    _overrideUniforms.clear();
+
+    if (!value) {
+      return;
+    }
+
+    for (const name in value) {
+      _overrideUniforms.set(name, value[name]);
+    }
+  }
+
+  get overrideSamplers() {
+    return this._overrideSamplers;
+  }
+
+  set overrideSamplers(value) {
+    const { _overrideSamplers } = this;
+
+    _overrideSamplers.clear();
+
+    if (!value) {
+      return;
+    }
+
+    for (const name in value) {
+      _overrideSamplers.set(name, value[name]);
+    }
+  }
+
   constructor() {
     super();
 
+    this._visible = true;
     this._context = null;
     this._vertexBuffer = null;
     this._indexBuffer = null;
@@ -70,6 +119,8 @@ export default class VerticesRenderer extends Component {
     this._vertices = null;
     this._indices = null;
     this._dirty = true;
+    this._overrideUniforms = new Map();
+    this._overrideSamplers = new Map();
   }
 
   dispose() {
@@ -83,6 +134,9 @@ export default class VerticesRenderer extends Component {
         _context.deleteBuffer(_indexBuffer);
       }
     }
+
+    this._overrideUniforms.clear();
+    this._overrideSamplers.clear();
 
     this._context = null;
     this._vertexBuffer = null;
@@ -98,7 +152,18 @@ export default class VerticesRenderer extends Component {
   }
 
   onRender(gl, renderer, deltaTime) {
-    const { _shader, _vertices, _indices } = this;
+    const {
+      _visible,
+      _shader,
+      _vertices,
+      _indices,
+      _overrideUniforms,
+      _overrideSamplers
+    } = this;
+
+    if (!_visible) {
+      return;
+    }
 
     if (!_shader) {
       console.warn('Trying to render TrianglesRenderer2D without shader!');
@@ -114,6 +179,8 @@ export default class VerticesRenderer extends Component {
     }
 
     this._ensureState(gl);
+    mat4.copy(renderer.modelViewMatrix, this.entity.transform);
+
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
 
@@ -124,8 +191,22 @@ export default class VerticesRenderer extends Component {
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, _indices, gl.STATIC_DRAW);
     }
 
-    mat4.copy(renderer.modelViewMatrix, this.entity.transform);
     renderer.enableShader(_shader);
+
+    if (_overrideUniforms.size > 0) {
+      for (const [ name, value ] of _overrideUniforms) {
+        renderer.overrideShaderUniform(name, value);
+      }
+    }
+
+    if (_overrideSamplers.size > 0) {
+      for (const [ name, { texture, filtering } ] of _overrideSamplers) {
+        if (texture !== '') {
+          renderer.overrideShaderSampler(name, texture, filtering);
+        }
+      }
+    }
+
     gl.drawElements(gl.TRIANGLES, _indices.length, gl.UNSIGNED_SHORT, 0);
   }
 
@@ -136,6 +217,7 @@ export default class VerticesRenderer extends Component {
       this._vertexBuffer = gl.createBuffer();
       this._dirty = true;
     }
+
     if (!this._indexBuffer) {
       this._indexBuffer = gl.createBuffer();
       this._dirty = true;

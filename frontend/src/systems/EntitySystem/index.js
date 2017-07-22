@@ -22,6 +22,7 @@ export default class EntitySystem extends System {
     }
 
     this._root = value;
+    value._setOwner(this);
   }
 
   constructor() {

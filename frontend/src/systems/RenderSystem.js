@@ -32,6 +32,10 @@ export default class RenderSystem extends System {
     return this._modelViewMatrix;
   }
 
+  get stats() {
+    return this._stats;
+  }
+
   constructor(canvas) {
     super();
 
@@ -47,14 +51,18 @@ export default class RenderSystem extends System {
     this._projectionMatrix = mat4.create();
     this._modelViewMatrix = mat4.create();
     this._blendingConstants = {};
+    this._stats = new Map();
+    this._counterShaderChanges = 0;
+    this._counterFrames = 0;
 
     this._setup(canvas);
   }
 
   dispose() {
-    const { _shaders, _textures, _events } = this;
+    const { _context, _shaders, _textures, _events } = this;
 
     this._stopAnimation();
+    _context.clear(_context.COLOR_BUFFER_BIT);
 
     for (const shader of _shaders.keys()) {
       this.unregisterShader(shader);
@@ -63,9 +71,7 @@ export default class RenderSystem extends System {
       this.unregisterTexture(texture);
     }
     _events.dispose();
-
-    this._canvas = null;
-    this._context = null;
+    this._stats.clear();
   }
 
   registerShader(
@@ -267,11 +273,7 @@ export default class RenderSystem extends System {
       _projectionMatrix,
       _modelViewMatrix
     } = this;
-
-    if (!_activeShader === id && !forced) {
-      return;
-    }
-
+    const changeShader = forced || _activeShader !== id;
     const gl = this._context;
     const meta = _shaders.get(id);
 
@@ -282,8 +284,11 @@ export default class RenderSystem extends System {
 
     const { shader, layout, uniforms, samplers, blending } = meta;
 
-    gl.useProgram(shader);
-    this._activeShader = id;
+    if (changeShader) {
+      gl.useProgram(shader);
+      this._activeShader = id;
+      ++this._counterShaderChanges;
+    }
 
     for (const { location, size, stride, offset } of layout.values()) {
       gl.vertexAttribPointer(
@@ -297,10 +302,17 @@ export default class RenderSystem extends System {
       gl.enableVertexAttribArray(location);
     }
 
+    if (!changeShader) {
+      return;
+    }
+
     for (const { location, mapping } of uniforms.values()) {
       const { length } = mapping;
 
-      if (mapping === 'projection-matrix') {
+      if (mapping === '') {
+        continue;
+
+      } else if (mapping === 'projection-matrix') {
         gl.uniformMatrix4fv(location, false, _projectionMatrix);
 
       } else if (mapping === 'model-view-matrix') {
@@ -345,6 +357,10 @@ export default class RenderSystem extends System {
     }
 
     for (const { location, channel, texture, filtering } of samplers.values()) {
+      if (texture === '') {
+        continue;
+      }
+
       const tex = _textures.get(texture);
       if (!tex) {
         console.warn(`Trying to enable non-existing texture: ${texture} (${id})`);
@@ -370,13 +386,13 @@ export default class RenderSystem extends System {
     }
   }
 
-  setShaderValue(id, name, value) {
-    const { _shaders } = this;
+  overrideShaderUniform(name, value) {
+    const { _shaders, _activeShader } = this;
     const gl = this._context;
-    const meta = _shaders.get(id);
+    const meta = _shaders.get(_activeShader);
 
     if (!meta) {
-      console.warn(`Trying to set uniform of non-existing shader: ${id}`);
+      console.warn(`Trying to set uniform of non-existing shader: ${_activeShader}`);
       return;
     }
 
@@ -384,7 +400,7 @@ export default class RenderSystem extends System {
     const uniform = uniforms.get(name);
 
     if (!uniform) {
-      console.warn(`Trying to set value of non-existing uniform: ${id} (${name})`);
+      console.warn(`Trying to set value of non-existing uniform: ${_activeShader} (${name})`);
       return;
     }
 
@@ -410,6 +426,42 @@ export default class RenderSystem extends System {
       gl.uniformMatrix4fv(location, false, value);
 
     }
+  }
+
+  overrideShaderSampler(name, texture, filtering) {
+    const { _shaders, _textures, _activeShader } = this;
+    const gl = this._context;
+    const meta = _shaders.get(_activeShader);
+
+    if (!meta) {
+      console.warn(`Trying to set sampler of non-existing shader: ${_activeShader}`);
+      return;
+    }
+
+    const { samplers } = meta;
+    const sampler = samplers.get(name);
+
+    if (!sampler) {
+      console.warn(`Trying to set non-existing sampler: ${_activeShader} (${name})`);
+      return;
+    }
+
+    const tex = _textures.get(texture);
+    if (!tex) {
+      console.warn(`Trying to enable non-existing texture: ${texture} (${id})`);
+      return;
+    }
+
+    const { location, channel } = sampler;
+    const mode = filtering === 'linear'
+      ? gl.LINEAR
+      : gl.NEAREST;
+
+    gl.activeTexture(gl.TEXTURE0 + channel | 0);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, mode);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mode);
+    gl.uniform1i(location, channel | 0);
   }
 
   registerTexture(id, image) {
@@ -527,12 +579,21 @@ export default class RenderSystem extends System {
   _onFrame(timestamp) {
     this._resize();
 
+    const { _stats, _counterShaderChanges } = this;
     const gl = this._context;
     const deltaTime = timestamp - this._lastTimestamp;
     this._lastTimestamp = timestamp;
+    this._counterShaderChanges = 0
+    this._activeShader = null;
 
     gl.clear(gl.COLOR_BUFFER_BIT);
     this.events.trigger('render', gl, this, deltaTime);
+
+    _stats.set('delta-time', deltaTime);
+    _stats.set('shader-changes', _counterShaderChanges);
+    _stats.set('frames', ++this._counterFrames);
+    _stats.set('shaders', this._shaders.size);
+    _stats.set('textures', this._textures.size);
 
     this._requestFrame();
   }

@@ -1,0 +1,31 @@
+{
+  "vertex": "shaders/sprite.vs",
+  "fragment": "shaders/sprite.fs",
+  "layout": {
+    "aPosition": {
+      "size": 2,
+      "stride": 4,
+      "offset": 0
+    },
+    "aTexCoord": {
+      "size": 2,
+      "stride": 4,
+      "offset": 2
+    }
+  },
+  "uniforms": {
+    "uModelView": "model-view-matrix",
+    "uProjection": "projection-matrix"
+  },
+  "samplers": {
+    "sBase": {
+      "channel": 0,
+      "texture": "",
+      "filtering": "linear"
+    }
+  },
+  "blending": {
+    "source": "src-alpha",
+    "destination": "one-minus-src-alpha"
+  }
+}

@@ -7,6 +7,7 @@ import ImageAsset from '../asset-loaders/ImageAsset';
 import ShaderAsset from '../asset-loaders/ShaderAsset';
 import SceneAsset from '../asset-loaders/SceneAsset';
 import Camera2D from '../components/Camera2D';
+import InputListener from '../components/InputListener';
 import RectangleRenderer from '../components/RectangleRenderer';
 import Script from '../components/Script';
 import Sprite from '../components/Sprite';
@@ -18,6 +19,7 @@ export function registerAllKnownScripts(entities) {
   }
 
   entities.registerComponent('Camera2D', () => new Camera2D());
+  entities.registerComponent('InputListener', () => new InputListener());
   entities.registerComponent('RectangleRenderer', () => new RectangleRenderer());
   entities.registerComponent('Script', () => new Script());
   entities.registerComponent('Sprite', () => new Sprite());
@@ -81,7 +83,6 @@ export function hookSystemsIntoLifeCycle(entities, renderer) {
     throw new Error('`renderer` is not type of RenderSystem!');
   }
 
-  // to simplify updating mechanism, we will update our entities before rendering
   renderer.events.on('render', (context, renderer, deltaTime) => {
     entities.updateTransforms();
     entities.performAction('update', deltaTime);

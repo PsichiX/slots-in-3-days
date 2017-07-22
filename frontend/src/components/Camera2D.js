@@ -73,6 +73,14 @@ export default class Camera2D extends Component {
     this._zoomMode = value;
   }
 
+  get projectionMatrix() {
+    return this._projectionMatrix;
+  }
+
+  get inverseProjectionMatrix() {
+    return this._inverseProjectionMatrix;
+  }
+
   constructor() {
     super();
 
@@ -80,6 +88,8 @@ export default class Camera2D extends Component {
     this._near = -1;
     this._far = 1;
     this._zoomMode = ZoomMode.PIXEL_PERFECT;
+    this._projectionMatrix = mat4.create();
+    this._inverseProjectionMatrix = mat4.create();
   }
 
   onAction(name, ...args) {
@@ -95,7 +105,12 @@ export default class Camera2D extends Component {
       return;
     }
 
-    const { _zoom, _zoomMode } = this;
+    const {
+      _zoom,
+      _zoomMode,
+      _projectionMatrix,
+      _inverseProjectionMatrix
+    } = this;
     const scale = _zoom > 0 ? 1 / _zoom : 0;
 
     if (_zoomMode === ZoomMode.KEEP_ASPECT) {
@@ -112,7 +127,7 @@ export default class Camera2D extends Component {
     const halfHeight = height * 0.5 * scale;
 
     mat4.ortho(
-      renderer.projectionMatrix,
+      _projectionMatrix,
       -halfWidth,
       halfWidth,
       halfHeight,
@@ -120,6 +135,8 @@ export default class Camera2D extends Component {
       this._near,
       this._far
     );
+    mat4.copy(renderer.projectionMatrix, _projectionMatrix);
+    mat4.invert(_inverseProjectionMatrix, _projectionMatrix);
   }
 
 }

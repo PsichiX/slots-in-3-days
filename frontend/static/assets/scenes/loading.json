@@ -11,7 +11,7 @@
       "name": "loading",
       "components": {
         "RectangleRenderer": {
-          "shader": "shaders/loading-bar-back.json",
+          "shader": "shaders/color.json",
           "width": 1024,
           "height": 64,
           "xOffset": 512,
@@ -23,11 +23,14 @@
           "name": "bar",
           "components": {
             "RectangleRenderer": {
-              "shader": "shaders/loading-bar-front.json",
+              "shader": "shaders/color.json",
               "width": 1000,
               "height": 50,
               "xOffset": 500,
-              "yOffset": 25
+              "yOffset": 25,
+              "overrideUniforms": {
+                "uColor": [ 0.0, 0.0, 0.0, 1.0 ]
+              }
             }
           }
         }

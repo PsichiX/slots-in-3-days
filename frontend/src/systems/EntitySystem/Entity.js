@@ -1,10 +1,15 @@
 import Component from './Component';
+import EntitySystem from '.';
 import { className } from '../../utils';
 import { mat4, quat, vec3 } from 'gl-matrix';
 
 const zVector = vec3.fromValues(0, 0, 1);
 
 export default class Entity {
+
+  get owner() {
+    return this._owner;
+  }
 
   get name() {
     return this._name;
@@ -34,6 +39,10 @@ export default class Entity {
     return this._transform;
   }
 
+  get inverseTransform() {
+    return this._inverseTransform;
+  }
+
   get position() {
     return this._position;
   }
@@ -47,11 +56,13 @@ export default class Entity {
   }
 
   constructor() {
+    this._owner = null;
     this._name = '';
     this._children = [];
     this._parent = null;
     this._components = new Map();
     this._transform = mat4.create();
+    this._inverseTransform = mat4.create();
     this._transformLocal = mat4.create();
     this._position = vec3.create();
     this._rotation = quat.create();
@@ -61,6 +72,8 @@ export default class Entity {
 
   dispose() {
     const { _children, _components } = this;
+
+    this.reparent(null);
 
     // this could be replaced with for..of
     // (on Chrome Array iterators are optimized to be faster than indexing):
@@ -74,8 +87,6 @@ export default class Entity {
     for (const component of _components.values()) {
       component.dispose();
     }
-
-    this.reparent(null);
   }
 
   setPosition(x, y) {
@@ -122,18 +133,75 @@ export default class Entity {
       return;
     }
 
+    this._parent = entity;
+
     if (!!_parent) {
-      const found = _parent._children.indexOf(this);
+      const { _children } = _parent;
+      const found = _children.indexOf(this);
+
       if (found >= 0) {
-        _parent._children.splice(found, 1);
+        this._setOwner(null);
+        _children.splice(found, 1);
       }
     }
 
     if (!!entity) {
       entity._children.push(this);
+      this._setOwner(entity.owner);
+    }
+  }
+
+  findEntity(name) {
+    if (typeof name !== 'string') {
+      throw new Error('`name` is not type of String!');
     }
 
-    this._parent = entity;
+    let current = this;
+    while (!!current && name.length > 0) {
+      const found = name.indexOf('/');
+
+      if (found === 0) {
+        while (!!current._parent) {
+          current = current._parent;
+        }
+
+        name = name.substr(found + 1);
+      } else if (found > 0) {
+        const part = name.substr(0, found);
+
+        if (part === '.') {
+          // do nothing
+
+        } else if (part === '..') {
+          current = current._parent;
+
+        } else {
+          const { _children } = current;
+          let found = false;
+
+          for (let i = 0, c = _children.length; i < c; ++i) {
+            const child = _children[i];
+
+            if (child.name === part) {
+              current = child;
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            return null;
+          }
+
+        }
+
+        name = name.substr(found + 1);
+      } else {
+        break;
+      }
+    }
+
+    return current;
   }
 
   attachComponent(component) {
@@ -152,7 +220,9 @@ export default class Entity {
 
     _components.set(typename, component);
     component._owner = this;
-    component.onAttach();
+    if (!!this._owner) {
+      component.onAttach();
+    }
   }
 
   detachComponent(component) {
@@ -168,7 +238,9 @@ export default class Entity {
 
     if (_components.delete(typename)) {
       component._owner = null;
-      component.onDetach();
+      if (!!this._owner) {
+        component.onDetach();
+      }
     } else {
       throw new Error(`Trying to remove non-attached component type: ${typename}`);
     }
@@ -198,17 +270,18 @@ export default class Entity {
     }
   }
 
-  updateTransforms(parentTransform) {
+  updateTransforms(parentTransform, forced = false) {
     const {
       _children,
       _transform,
+      _inverseTransform,
       _transformLocal,
       _position,
       _rotation,
       _scale
     } = this;
 
-    if (this._dirty) {
+    if (!!forced || this._dirty) {
       mat4.fromRotationTranslationScale(
         _transformLocal,
         _rotation,
@@ -217,12 +290,36 @@ export default class Entity {
       );
 
       mat4.multiply(_transform, _transformLocal, parentTransform);
+      mat4.invert(_inverseTransform, _transform);
 
+      forced = true;
       this._dirty = false;
     }
 
     for (let i = 0, c = _children.length; i < c; ++i) {
-      _children[i].updateTransforms(_transform);
+      _children[i].updateTransforms(_transform, forced);
+    }
+  }
+
+  _setOwner(owner) {
+    const { _owner, _components, _children } = this;
+
+    if (!!owner === !!_owner) {
+      return;
+    }
+
+    this._owner = owner;
+
+    for (const component of _components.values()) {
+      if (!!owner) {
+        component.onAttach();
+      } else {
+        component.onDetach();
+      }
+    }
+
+    for (let i = 0, c = _children.length; i < c; ++i) {
+      _children[i]._setOwner(owner);
     }
   }
 

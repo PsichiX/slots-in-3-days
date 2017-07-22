@@ -1,12 +1,10 @@
 {
   "preassets": [
-    "shader://shaders/loading-bar-back.json",
-    "shader://shaders/loading-bar-front.json"
+    "shader://shaders/color.json"
   ],
   "assets": [
-    "shader://shaders/background.json",
-    "shader://shaders/button-spin-enabled.json",
-    "shader://shaders/button-spin-disabled.json",
+    "shader://shaders/sprite-solid.json",
+    "shader://shaders/sprite-transparent.json",
     "image://images/Bet_Line.png",
     "image://images/BG.png",
     "image://images/BTN_Spin_d.png",
