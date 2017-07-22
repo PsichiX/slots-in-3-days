@@ -1,7 +1,8 @@
 import System from '../System';
 import Asset from './Asset';
+import Events from '../../utils/Events';
 
-const _pathRegex = /(\w+)(\:\/\/)([\w\.\/\-_]+)/;
+const _pathRegex = /(\w+)(\:\/\/)(.*)/;
 
 export default class AssetSystem extends System {
 
@@ -9,7 +10,15 @@ export default class AssetSystem extends System {
     return this._pathPrefix;
   }
 
-  constructor(pathPrefix) {
+  get fetchOptions() {
+    return this._fetchOptions;
+  }
+
+  get events() {
+    return this._events;
+  }
+
+  constructor(pathPrefix, fetchOptions) {
     super();
 
     if (!!pathPrefix && typeof pathPrefix !== 'string') {
@@ -17,22 +26,22 @@ export default class AssetSystem extends System {
     }
 
     this._pathPrefix = pathPrefix || '';
+    this._fetchOptions = fetchOptions || {};
     this._assets = new Map();
     this._loaders = new Map();
+    this._events = new Events();
   }
 
   dispose() {
-    const { _assets, _loaders } = this;
+    const { _assets, _loaders, _events } = this;
 
     for (const asset of _assets.values()) {
       asset.dispose();
     }
-    for (const loader of _loaders.values()) {
-      loader.dispose();
-    }
 
     _assets.clear();
     _loaders.clear();
+    _events.dispose();
   }
 
   registerProtocol(protocol, assetConstructor) {
@@ -87,7 +96,7 @@ export default class AssetSystem extends System {
 
     const { _assets } = this;
     if (_assets.has(path)) {
-      throw new Error(`There is already created asset for path: ${path}`);
+      return Promise.resolve(_assets.get(path));
     }
 
     const asset = loader(this, protocol, filename);
@@ -99,6 +108,7 @@ export default class AssetSystem extends System {
 
     return asset.load().then(data => {
       this._assets.set(path, asset);
+      this._events.trigger('load', asset);
       return data;
     });
   }
@@ -132,11 +142,10 @@ export default class AssetSystem extends System {
       throw new Error(`Trying to unload non-existing asset: ${path}`);
     }
 
+    this._events.trigger('unload', asset);
     asset.dispose();
     _assets.delete(path);
   }
-
-  onRegister() {}
 
   onUnregister() {
     dispose();

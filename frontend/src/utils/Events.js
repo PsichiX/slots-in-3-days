@@ -68,7 +68,11 @@ export default class Events {
     }
 
     for (let i = 0, c = callbacks.length; i < c; ++i) {
-      callbacks[i](...args);
+      try {
+        callbacks[i](...args);
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
 

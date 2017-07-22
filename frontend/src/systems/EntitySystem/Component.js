@@ -22,4 +22,10 @@ export default class Component {
 
   onDetach() {}
 
+  onAction(name, ...args) {}
+
+  onPropertySetup(name, value) {
+    this[name] = value;
+  }
+
 }

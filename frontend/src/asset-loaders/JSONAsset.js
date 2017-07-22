@@ -9,14 +9,14 @@ export default class JSONAsset extends Asset {
   load() {
     const { filename, owner } = this;
 
-    return fetch(owner.pathPrefix + filename)
+    return fetch(owner.pathPrefix + filename, owner.fetchOptions)
       .then(response => !!response.ok
         ? response.json()
         : Promise.reject(new Error(`Cannot load JSON file: ${filename}`))
       )
       .then(data => {
         this.data = data;
-
+        
         return this;
       });
   }

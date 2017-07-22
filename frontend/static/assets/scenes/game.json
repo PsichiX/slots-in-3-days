@@ -1,0 +1,41 @@
+{
+  "name": "game",
+  "components": {
+    "Camera2D": {
+      "zoomOut": 536,
+      "zoomMode": "keep-aspect"
+    }
+  },
+  "children": [
+    {
+      "name": "background",
+      "components": {
+        "Sprite": {
+          "shader": "shaders/background.json",
+          "width": 960,
+          "height": 536,
+          "xOffset": 480,
+          "yOffset": 268
+        }
+      },
+      "children": [
+        {
+          "name": "button",
+          "transform": {
+            "position": [ 392, -2 ]
+          },
+          "components": {
+            "Sprite": {
+              "shader": "shaders/button-spin-enabled.json",
+              "width": 98,
+              "height": 98,
+              "xOffset": 48,
+              "yOffset": 48
+            },
+            "SpinButton": {}
+          }
+        }
+      ]
+    }
+  ]
+}

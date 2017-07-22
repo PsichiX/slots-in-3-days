@@ -1,0 +1,22 @@
+{
+  "preassets": [
+    "shader://shaders/loading-bar-back.json",
+    "shader://shaders/loading-bar-front.json"
+  ],
+  "assets": [
+    "shader://shaders/background.json",
+    "shader://shaders/button-spin-enabled.json",
+    "shader://shaders/button-spin-disabled.json",
+    "image://images/Bet_Line.png",
+    "image://images/BG.png",
+    "image://images/BTN_Spin_d.png",
+    "image://images/BTN_Spin.png",
+    "image://images/SYM1.png",
+    "image://images/SYM3.png",
+    "image://images/SYM4.png",
+    "image://images/SYM5.png",
+    "image://images/SYM6.png",
+    "image://images/SYM7.png",
+    "scene://scenes/game.json"
+  ]
+}

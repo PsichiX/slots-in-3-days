@@ -1,0 +1,16 @@
+{
+  "vertex": "shaders/color.vs",
+  "fragment": "shaders/color.fs",
+  "layout": {
+    "aPosition": {
+      "size": 2,
+      "stride": 2,
+      "offset": 0
+    }
+  },
+  "uniforms": {
+    "uModelView": "model-view-matrix",
+    "uProjection": "projection-matrix",
+    "uColor": [ 0.0, 0.0, 0.0, 1.0 ]
+  }
+}
