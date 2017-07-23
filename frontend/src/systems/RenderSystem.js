@@ -567,7 +567,7 @@ export default class RenderSystem extends System {
     );
   }
 
-  _resize() {
+  resize(forced = false) {
     const { _canvas, _context } = this;
     let { width, height, clientWidth, clientHeight } = _canvas;
 
@@ -578,7 +578,7 @@ export default class RenderSystem extends System {
       clientHeight = (clientHeight * devicePixelRatio) | 0;
     }
 
-    if (width !== clientWidth || height !== clientHeight) {
+    if (forced || width !== clientWidth || height !== clientHeight) {
       _canvas.width = clientWidth;
       _canvas.height = clientHeight;
       _context.viewport(0, 0, clientWidth, clientHeight);
@@ -586,7 +586,7 @@ export default class RenderSystem extends System {
   }
 
   _onFrame(timestamp) {
-    this._resize();
+    this.resize();
 
     const { _stats, _counterShaderChanges } = this;
     const gl = this._context;

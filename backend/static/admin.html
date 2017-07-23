@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Slots game admin panel</title>
+    <style>
+      .center-outside {
+        height: 100%;
+        position: relative;
+      }
+
+      .center-inside {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+    <script>
+      window.sendSymbol = function() {
+        var select = document.getElementById('symbols-list');
+
+        if (!!select) {
+          var selected = select.options[select.selectedIndex].text;
+
+          if (selected === 'RESET') {
+            selected = '';
+          } else if (selected === 'RANDOM') {
+            selected = '_random_';
+          }
+
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', 'http://slots.psichix.io/api/expect/' + selected, true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                alert('Request sent!');
+              }
+            }
+          };
+          xhr.send();
+        }
+      }
+    </script>
+  </head>
+  <body style = "margin: 0; padding: 0">
+    <div class="center-outside">
+      <div class="center-inside">
+        <label>Select symbol:</label>
+        <select id="symbols-list">
+          <option>RESET</option>
+          <option>RANDOM</option>
+          <option>SYM1.png</option>
+          <option>SYM3.png</option>
+          <option>SYM4.png</option>
+          <option>SYM5.png</option>
+          <option>SYM6.png</option>
+          <option>SYM7.png</option>
+        </select>
+        <button onclick="javascript:sendSymbol()">
+          SEND
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

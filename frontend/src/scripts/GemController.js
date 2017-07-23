@@ -73,7 +73,7 @@ export default class GemController extends Script {
           const scale = 1 - 0.25 * phase;
           this.entity.setScale(scale, scale);
         },
-        0.75,
+        0.5,
         easeInOutCubic
       )
         .then(tweenProgress(
@@ -82,7 +82,7 @@ export default class GemController extends Script {
             const scale = 0.75 + 0.25 * phase;
             this.entity.setScale(scale, scale);
           },
-          3.25,
+          2.5,
           easeOutElastic
         ))
 

@@ -19,5 +19,6 @@
     "SYM5.png",
     "SYM6.png",
     "SYM7.png"
-  ]
+  ],
+  "apiRequestSymbol": "http://slots.psichix.io/api/symbol"
 }

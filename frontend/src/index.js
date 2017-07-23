@@ -35,16 +35,19 @@ hookAll({ entities, assets, renderer });
 
 window.openInFullscreen = () => {
   const { canvas } = renderer;
-  const requestFullscreen =
+  const func =
     canvas.requestFullscreen ||
     canvas.webkitRequestFullscreen ||
     canvas.mozRequestFullscreen;
 
-  if (!!requestFullscreen) {
-    requestFullscreen.call(canvas);
+  if (!!func) {
+    func.call(canvas);
   }
 };
 
+window.addEventListener('resize', () => renderer.resize(true));
+
+// trigger loading game config and initial assets
 assets.loadSequence([
     'json://config/game.json'
   ])

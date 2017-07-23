@@ -8,6 +8,12 @@ import {
 
 export default class WelcomeController extends Script {
 
+  constructor() {
+    super();
+
+    this._canAnimate = true;
+  }
+
   onAction(name, ...args) {
     if (name === 'click') {
       this.onClick(...args);
@@ -17,6 +23,12 @@ export default class WelcomeController extends Script {
   }
 
   onClick(localVec) {
+    if (!this._canAnimate) {
+      return;
+    }
+
+    this._canAnimate = false;
+
     tweenProgress(
       this.entity,
       phase => {

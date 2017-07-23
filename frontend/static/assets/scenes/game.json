@@ -76,9 +76,9 @@
           "overrideBaseTexture": "images/BG.png"
         },
         "CutRectangle": {
-          "xOffset": 69,
+          "xOffset": 0,
           "yOffset": 44,
-          "width": 724,
+          "width": 960,
           "height": 460
         }
       },
