@@ -70,6 +70,7 @@ export default class RenderSystem extends System {
     for (const texture of _textures.keys()) {
       this.unregisterTexture(texture);
     }
+
     _events.dispose();
     this._stats.clear();
   }
@@ -193,9 +194,17 @@ export default class RenderSystem extends System {
           );
         }
 
+        const forcedUpdate =
+          mapping === 'projection-matrix' ||
+          mapping === 'model-view-matrix' ||
+          mapping === 'time' ||
+          mapping === 'viewport-size' ||
+          mapping === 'inverse-viewport-size';
+
         uniforms.set(name, {
           location,
-          mapping
+          mapping,
+          forcedUpdate
         });
       }
     }
@@ -302,14 +311,10 @@ export default class RenderSystem extends System {
       gl.enableVertexAttribArray(location);
     }
 
-    if (!changeShader) {
-      return;
-    }
-
-    for (const { location, mapping } of uniforms.values()) {
+    for (const { location, mapping, forcedUpdate } of uniforms.values()) {
       const { length } = mapping;
 
-      if (mapping === '') {
+      if (mapping === '' || (changeShader && !forcedUpdate)) {
         continue;
 
       } else if (mapping === 'projection-matrix') {
@@ -354,6 +359,10 @@ export default class RenderSystem extends System {
       } else {
         console.warn(`Trying to set non-proper uniform: ${name} (${id})`);
       }
+    }
+
+    if (!changeShader) {
+      return;
     }
 
     for (const { location, channel, texture, filtering } of samplers.values()) {
@@ -448,7 +457,7 @@ export default class RenderSystem extends System {
 
     const tex = _textures.get(texture);
     if (!tex) {
-      console.warn(`Trying to enable non-existing texture: ${texture} (${id})`);
+      console.warn(`Trying to enable non-existing texture: ${texture} (${texture})`);
       return;
     }
 

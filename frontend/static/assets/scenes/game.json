@@ -4,6 +4,12 @@
     "Camera2D": {
       "zoomOut": 536,
       "zoomMode": "keep-aspect"
+    },
+    "GameController": {},
+    "ScreenShake": {
+      "size": 5,
+      "zoom": 0.025,
+      "angle": 2
     }
   },
   "children": [
@@ -11,12 +17,69 @@
       "name": "background",
       "components": {
         "Sprite": {
-          "shader": "shaders/sprite-solid.json",
+          "shader": "shaders/sprite-transparent.json",
           "width": 960,
           "height": 536,
           "xOffset": 480,
           "yOffset": 268,
           "overrideBaseTexture": "images/BG.png"
+        }
+      }
+    },
+    {
+      "name": "ribbons",
+      "children": [
+        {
+          "name": "0",
+          "transform": {
+            "position": [ -294, -70 ]
+          },
+          "components": {
+            "RibbonController": {
+              "separation": 155
+            }
+          }
+        },
+        {
+          "name": "1",
+          "transform": {
+            "position": [ -53, -70 ]
+          },
+          "components": {
+            "RibbonController": {
+              "separation": 155
+            }
+          }
+        },
+        {
+          "name": "2",
+          "transform": {
+            "position": [ 190, -70 ]
+          },
+          "components": {
+            "RibbonController": {
+              "separation": 155
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "foreground",
+      "components": {
+        "Sprite": {
+          "shader": "shaders/sprite-cut-rect.json",
+          "width": 960,
+          "height": 536,
+          "xOffset": 480,
+          "yOffset": 268,
+          "overrideBaseTexture": "images/BG.png"
+        },
+        "CutRectangle": {
+          "xOffset": 69,
+          "yOffset": 44,
+          "width": 724,
+          "height": 460
         }
       },
       "children": [
@@ -28,19 +91,17 @@
           "components": {
             "SpinButton": {},
             "InputListener": {
-              "camera": "/game",
+              "camera": "/",
               "width": 98,
               "height": 98,
               "xOffset": 48,
               "yOffset": 48
             },
-            "Sprite": {
+            "AtlasSprite": {
               "shader": "shaders/sprite-transparent.json",
-              "width": 98,
-              "height": 98,
+              "atlas": "atlases/spritesheet.json:BTN_Spin.png",
               "xOffset": 48,
-              "yOffset": 48,
-              "overrideBaseTexture": "images/BTN_Spin.png"
+              "yOffset": 48
             }
           }
         }

@@ -1,20 +1,23 @@
 {
-  "preassets": [
-    "shader://shaders/color.json"
-  ],
   "assets": [
+    "shader://shaders/color-fullscreen.json",
     "shader://shaders/sprite-solid.json",
     "shader://shaders/sprite-transparent.json",
-    "image://images/Bet_Line.png",
+    "shader://shaders/sprite-screen.json",
+    "shader://shaders/sprite-cut-rect.json",
     "image://images/BG.png",
-    "image://images/BTN_Spin_d.png",
-    "image://images/BTN_Spin.png",
-    "image://images/SYM1.png",
-    "image://images/SYM3.png",
-    "image://images/SYM4.png",
-    "image://images/SYM5.png",
-    "image://images/SYM6.png",
-    "image://images/SYM7.png",
-    "scene://scenes/game.json"
+    "atlas://atlases/spritesheet.json",
+    "scene://scenes/welcome.json",
+    "scene://scenes/game.json",
+    "scene://prefabs/overlay.json",
+    "scene://prefabs/symbol.json"
+  ],
+  "symbolMapping": [
+    "SYM1.png",
+    "SYM3.png",
+    "SYM4.png",
+    "SYM5.png",
+    "SYM6.png",
+    "SYM7.png"
   ]
 }

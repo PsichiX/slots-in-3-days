@@ -23,6 +23,16 @@ export default class Entity {
     this._name = value;
   }
 
+  get path() {
+    let result = `/${this._name}`;
+    let current = this._parent;
+    while (!!current) {
+      result = `/${current.name}${result}`;
+      current = current._parent;
+    }
+    return result;
+  }
+
   get parent() {
     return this._parent;
   }
@@ -31,8 +41,8 @@ export default class Entity {
     this.reparent(value);
   }
 
-  get componentsCount() {
-    return this._components.size;
+  get childrenCount() {
+    return this._children.length;
   }
 
   get transform() {
@@ -75,12 +85,7 @@ export default class Entity {
 
     this.reparent(null);
 
-    // this could be replaced with for..of
-    // (on Chrome Array iterators are optimized to be faster than indexing):
-    //  for (let child of _children) {
-    //    child.dispose();
-    //  }
-    for (let i = 0, c = _children.length; i < c; ++i) {
+    for (let i = _children.length - 1; i >= 0; --i) {
       _children[i].dispose();
     }
 
@@ -120,6 +125,30 @@ export default class Entity {
 
     vec3.set(this._scale, x, y, 0);
     this._dirty = true;
+  }
+
+  getChild(index) {
+    if (typeof index !== 'number') {
+      throw new Error('`index` is not type of Number!');
+    }
+
+    const { _children } = this;
+
+    if (index < 0 || index >= _children.length) {
+      throw new Error('`index` is out of bounds!');
+    }
+
+    return _children[index];
+  }
+
+  killChildren() {
+    const { _children } = this;
+    const container = new Set(_children);
+
+    for (const child of container) {
+      child.dispose();
+    }
+    container.clear();
   }
 
   reparent(entity) {
@@ -166,8 +195,8 @@ export default class Entity {
         }
 
         name = name.substr(found + 1);
-      } else if (found > 0) {
-        const part = name.substr(0, found);
+      } else {
+        const part = found > 0 ? name.substr(0, found) : name;
 
         if (part === '.') {
           // do nothing
@@ -195,9 +224,11 @@ export default class Entity {
 
         }
 
+        if (found < 0) {
+          return current;
+        }
+
         name = name.substr(found + 1);
-      } else {
-        break;
       }
     }
 
@@ -289,7 +320,7 @@ export default class Entity {
         _scale
       );
 
-      mat4.multiply(_transform, _transformLocal, parentTransform);
+      mat4.multiply(_transform, parentTransform, _transformLocal);
       mat4.invert(_inverseTransform, _transform);
 
       forced = true;

@@ -1,0 +1,14 @@
+{
+  "vertex": "shaders/color-fullscreen.vs",
+  "fragment": "shaders/color.fs",
+  "layout": {
+    "aPosition": {
+      "size": 2,
+      "stride": 2,
+      "offset": 0
+    }
+  },
+  "uniforms": {
+    "uColor": [ 1.0, 1.0, 1.0, 1.0 ]
+  }
+}

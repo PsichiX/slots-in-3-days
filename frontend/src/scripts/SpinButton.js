@@ -1,5 +1,9 @@
 import Script from '../components/Script';
 import System from '../systems/System';
+import {
+  tweenProgress,
+  easeOutElastic
+} from '../utils/tween';
 
 export default class SpinButton extends Script {
 
@@ -13,9 +17,20 @@ export default class SpinButton extends Script {
     }
 
     this._enabled = value;
-    this.entity.getComponent('Sprite').shader = value
-      ? 'shaders/button-spin-enabled.json'
-      : 'shaders/button-spin-disabled.json';
+
+    const { entity } = this;
+    if (!entity) {
+      return;
+    }
+
+    const sprite = entity.getComponent('AtlasSprite');
+    if(!sprite) {
+      throw new Error('There is no AtlasSprite component in this entity!');
+    }
+
+    sprite.atlas = value
+      ? 'atlases/spritesheet.json:BTN_Spin.png'
+      : 'atlases/spritesheet.json:BTN_Spin_d.png';
   }
 
   constructor() {
@@ -29,6 +44,7 @@ export default class SpinButton extends Script {
     super.onAttach();
 
     System.events.on('spin-button-change', this._onSpinButtonChange);
+    this.enabled = this.enabled;
   }
 
   onDetach() {
@@ -46,19 +62,22 @@ export default class SpinButton extends Script {
   }
 
   onClick(localVec) {
-    System.events.trigger('spin');
+    if (this._enabled) {
+      System.events.trigger('spin');
+
+      tweenProgress(
+        this.entity,
+        phase => {
+          this.entity.setRotation(phase * 2 * Math.PI);
+        },
+        2,
+        easeOutElastic
+      )
+    }
   }
 
   onSpinButtonChange(state) {
-    if (!state) {
-      return;
-    }
-
-    for (const prop in state) {
-      if (prop === 'enabled') {
-        this.enabled = state[prop];
-      }
-    }
+    this.enabled = state;
   }
 
 }

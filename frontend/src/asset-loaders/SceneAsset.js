@@ -30,7 +30,7 @@ export default class SceneAsset extends Asset {
     return owner.load(`json://${filename}`)
       .then(descriptorAsset => {
         this.data = descriptorAsset.data;
-        this._descriptorAsset = descriptorAsset
+        this._descriptorAsset = descriptorAsset;
 
         return this;
       });

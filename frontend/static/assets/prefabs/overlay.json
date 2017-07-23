@@ -1,0 +1,32 @@
+{
+  "name": "overlay",
+  "components": {
+    "RectangleRenderer": {
+      "shader": "shaders/color-fullscreen.json",
+      "width": 2,
+      "height": 2,
+      "xOffset": 1,
+      "yOffset": 1,
+      "overrideUniforms": {
+        "uColor": [ 1.0, 1.0, 1.0, 1.0 ]
+      }
+    }
+  },
+  "children": [
+    {
+      "name": "spinner",
+      "transform": {
+        "scale": [ -1.5, 1.5 ]
+      },
+      "components": {
+        "AtlasSprite": {
+          "shader": "shaders/sprite-transparent.json",
+          "atlas": "atlases/spritesheet.json:BTN_Spin_d.png",
+          "xOffset": 48,
+          "yOffset": 48
+        },
+        "SpinnerController": {}
+      }
+    }
+  ]
+}

@@ -6,12 +6,15 @@ import TextAsset from '../asset-loaders/TextAsset';
 import ImageAsset from '../asset-loaders/ImageAsset';
 import ShaderAsset from '../asset-loaders/ShaderAsset';
 import SceneAsset from '../asset-loaders/SceneAsset';
+import AtlasAsset from '../asset-loaders/AtlasAsset';
 import Camera2D from '../components/Camera2D';
 import InputListener from '../components/InputListener';
 import RectangleRenderer from '../components/RectangleRenderer';
 import Script from '../components/Script';
 import Sprite from '../components/Sprite';
+import AtlasSprite from '../components/AtlasSprite';
 import VerticesRenderer from '../components/VerticesRenderer';
+import System from '../systems/System';
 
 export function registerAllKnownScripts(entities) {
   if (!(entities instanceof EntitySystem)) {
@@ -23,6 +26,7 @@ export function registerAllKnownScripts(entities) {
   entities.registerComponent('RectangleRenderer', () => new RectangleRenderer());
   entities.registerComponent('Script', () => new Script());
   entities.registerComponent('Sprite', () => new Sprite());
+  entities.registerComponent('AtlasSprite', () => new AtlasSprite());
   entities.registerComponent('VerticesRenderer', () => new VerticesRenderer());
 }
 
@@ -36,6 +40,7 @@ export function registerAllKnownAssetLoaders(assets) {
   assets.registerProtocol('image', ImageAsset.factory);
   assets.registerProtocol('shader', ShaderAsset.factory);
   assets.registerProtocol('scene', SceneAsset.factory);
+  assets.registerProtocol('atlas', AtlasAsset.factory);
 }
 
 export function hookRendererIntoAssetsLoadingPipeline(assets, renderer) {
@@ -75,7 +80,7 @@ export function hookRendererIntoAssetsLoadingPipeline(assets, renderer) {
   });
 }
 
-export function hookSystemsIntoLifeCycle(entities, renderer) {
+export function hookSystemsIntoLifeCycle(entities, renderer, assets) {
   if (!(entities instanceof EntitySystem)) {
     throw new Error('`entities` is not type of EntitySystem!');
   }
@@ -87,7 +92,21 @@ export function hookSystemsIntoLifeCycle(entities, renderer) {
     entities.updateTransforms();
     entities.performAction('update', deltaTime);
     entities.performAction('render', context, renderer, deltaTime);
+
+    System.events.trigger('tween-update');
   });
+
+  System.events.on('change-scene', path => setTimeout(() => {
+    const asset = assets.get(path);
+    if (!asset) {
+      throw new Error(`There is no asset loaded: ${path}`);
+    }
+    if (!(asset instanceof SceneAsset)) {
+      throw new Error(`Asset is not type of SceneAsset: ${path}`);
+    }
+
+    entities.root = entities.buildEntity(asset.data);
+  }, 0));
 }
 
 export function hookAll({ entities, assets, renderer }) {
@@ -104,5 +123,5 @@ export function hookAll({ entities, assets, renderer }) {
   registerAllKnownScripts(entities);
   registerAllKnownAssetLoaders(assets);
   hookRendererIntoAssetsLoadingPipeline(assets, renderer);
-  hookSystemsIntoLifeCycle(entities, renderer);
+  hookSystemsIntoLifeCycle(entities, renderer, assets);
 }

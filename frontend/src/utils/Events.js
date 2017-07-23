@@ -1,7 +1,24 @@
 export default class Events {
 
+  get delayedDispatch() {
+    return this._delayedDispatch;
+  }
+
+  set delayedDispatch(value) {
+    if (typeof value !== 'boolean') {
+      throw new Error('`value` is not type of Boolean!');
+    }
+
+    this._delayedDispatch = value;
+  }
+
   constructor() {
     this._events = new Map();
+    this._onQueue = [];
+    this._offQueue = [];
+    this._delayedQueue = [];
+    this._triggerDepth = 0;
+    this._delayedDispatch = false;
   }
 
   dispose() {
@@ -16,7 +33,11 @@ export default class Events {
       throw new Error('`callback` is not type of Function!');
     }
 
-    const { _events } = this;
+    const { _events, _triggerDepth, _onQueue } = this;
+    if (_triggerDepth > 0) {
+      _onQueue.push({ name, callback });
+      return;
+    }
 
     if (!_events.has(name)) {
      _events.set(name, []);
@@ -30,7 +51,7 @@ export default class Events {
       throw new Error('`name` is not type of String!');
     }
 
-    const { _events } = this;
+    const { _events, _triggerDepth, _offQueue } = this;
 
     if (!callback) {
       _events.delete(name);
@@ -39,6 +60,11 @@ export default class Events {
 
     if (!(callback instanceof Function)) {
       throw new Error('`callback` is not type of Function!');
+    }
+
+    if (_triggerDepth > 0) {
+      _offQueue.push({ name, callback });
+      return;
     }
 
     const callbacks = _events.get(name);
@@ -61,12 +87,45 @@ export default class Events {
       throw new Error('`name` is not type of String!');
     }
 
-    const { _events } = this;
+    const {
+      _delayedDispatch,
+      _events,
+      _onQueue,
+      _offQueue,
+      _delayedQueue
+    } = this;
+
+    if (_delayedDispatch) {
+      this._delayedQueue.push({
+        name,
+        args
+      });
+      return;
+    }
+
+    if (this._triggerDepth <= 0) {
+      for (let i = 0, c = _onQueue.length; i < c; ++i) {
+        const { name, callback } = _onQueue[i];
+
+        this.on(name, callback);
+      }
+
+      for (let i = 0, c = _offQueue.length; i < c; ++i) {
+        const { name, callback } = _offQueue[i];
+
+        this.off(name, callback);
+      }
+
+      this._onQueue = [];
+      this._offQueue = [];
+    }
+
     const callbacks = _events.get(name);
     if (!callbacks) {
       return;
     }
 
+    ++this._triggerDepth;
     for (let i = 0, c = callbacks.length; i < c; ++i) {
       try {
         callbacks[i](...args);
@@ -74,6 +133,19 @@ export default class Events {
         console.error(error);
       }
     }
+    --this._triggerDepth;
+  }
+
+  dispatch() {
+    const { _delayedQueue } = this;
+
+    for (let i = 0, c = _delayedQueue.length; i < c; ++i) {
+      const { name, args } = _delayedQueue[i];
+
+      this.trigger(name, ...args);
+    }
+
+    this._delayedQueue = [];
   }
 
 }

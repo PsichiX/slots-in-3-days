@@ -20,12 +20,12 @@
   "samplers": {
     "sBase": {
       "channel": 0,
-      "texture": "images/BTN_Spin.png",
+      "texture": "",
       "filtering": "linear"
     }
   },
   "blending": {
     "source": "src-alpha",
-    "destination": "one-minus-src-alpha"
+    "destination": "one"
   }
 }

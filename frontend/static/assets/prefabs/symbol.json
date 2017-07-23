@@ -1,0 +1,12 @@
+{
+  "name": "symbol",
+  "components": {
+    "AtlasSprite": {
+      "shader": "shaders/sprite-transparent.json",
+      "atlas": "atlases/spritesheet.json:SYM1.png",
+      "xOffset": 117,
+      "yOffset": 77
+    },
+    "GemController": {}
+  }
+}

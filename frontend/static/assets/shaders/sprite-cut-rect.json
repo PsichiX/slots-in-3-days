@@ -1,6 +1,6 @@
 {
   "vertex": "shaders/sprite.vs",
-  "fragment": "shaders/sprite.fs",
+  "fragment": "shaders/sprite-cut-rect.fs",
   "layout": {
     "aPosition": {
       "size": 2,
@@ -15,12 +15,14 @@
   },
   "uniforms": {
     "uModelView": "model-view-matrix",
-    "uProjection": "projection-matrix"
+    "uProjection": "projection-matrix",
+    "uRectTopLeft": "",
+    "uRectBottomRight": ""
   },
   "samplers": {
     "sBase": {
       "channel": 0,
-      "texture": "images/BTN_Spin_d.png",
+      "texture": "",
       "filtering": "linear"
     }
   },
