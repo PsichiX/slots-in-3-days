@@ -94,8 +94,12 @@ export default class Script extends Component {
       for (let i = 0, c = value.length; i < c; ++i) {
         const flag = value[i];
 
-        if (flag === 'input') {
-          flags |= EventFlags.INPUT;
+        if (flag === 'mouse-down') {
+          flags |= EventFlags.MOUSE_DOWN;
+        } else if (flag === 'mouse-up') {
+          flags |= EventFlags.MOUSE_UP;
+        } else if (flag === 'mouse-move') {
+          flags |= EventFlags.MOUSE_MOVE;
         } else if (flag === 'all') {
           flags |= EventFlags.ALL;
         }
